@@ -1,0 +1,154 @@
+.container {
+  padding: 0 2rem;
+}
+
+.main {
+  position: relative;
+  min-height: 100vh;
+  padding: 4rem 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #151e25;
+}
+.backdrop{
+  position: absolute;
+  top:0;
+  bottom:0;
+  left:0;
+  right: 0;
+  z-index:1;
+  background-color: #151e25;
+}
+.modal {
+  z-index:2;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 500px;
+  background-color: #151e25;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+  border: 1px solid #2CC597;
+  padding: 25px;
+  .close {
+    background-color: transparent;
+    border: 2px solid #2CC597;
+    border-radius: 50%;
+    height: 30px;
+    width: 30px;
+    color: #2CC597;
+    font-size:20px;
+    font-weight: 600;
+    align-self: flex-end;
+  }
+}
+.card {
+  margin: 1rem;
+  padding: 1.5rem;
+  color: transparent;
+  text-decoration: none;
+  border: 1px solid #777;
+  border-radius: 10px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+  width: 70%;
+  min-width: 400px;
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center; 
+  color: #fff;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+.logo {
+  margin-top: 25px;
+  justify-self: start;
+}
+.controlContainer{
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+}
+.formContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+.formInput {
+  margin-right: 20px;
+  color: #fff;
+  border-radius: 8px;
+  border: 1px solid #1F2932;
+  background-color: #1F2932;
+  height: 50px;
+  padding: 0 10px; 
+  font-weight: 600;
+}
+.formInput:focus {
+  border: 1px solid #fff;
+  outline: none;
+}
+.buttonContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.btnPrimary {
+  display: block;
+  background-color: #2CC597;
+  padding: 15px 40px;
+  border: 1px solid #2CC597;
+  border-radius: 5px;
+  color: #fff;
+  font-weight: 600;
+  width: 150px;
+}
+.btnPrimary:active,
+.btnConnect:active,
+.btnPrimaryOutline:active {
+  border: 1px solid #1F2932;
+}
+.btnPrimaryOutline{
+  display: block;
+  background-color: #1F2932;
+  padding: 15px 40px;
+  border: 1px solid #2CC597;
+  border-radius: 5px;
+  color: #fff;
+  font-weight: 600;
+  width: 150px;
+  height: 90px;
+}
+.btnPrimaryOutline:hover{
+  background-color: #2CC597;
+}
+.btnConnect {
+  display: block;
+  background-color: #2CC597;
+  padding: 10px 20px;
+  border: 1px solid #2CC597;
+  border-radius: 5px;
+  color: #fff;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+.powered {
+  font-size: 8px;
+  margin-bottom: -20px;
+  text-align: right;
+  width: 100%;
+}
