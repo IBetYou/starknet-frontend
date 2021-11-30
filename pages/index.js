@@ -225,7 +225,7 @@ export default function Home() {
         type: "INVOKE_FUNCTION",
         contract_address: CONTRACT_ADDRESS,
         entry_point_selector: getSelectorFromName("voteBettor"),
-        calldata: [BigInt(`0x${publicKey}`).toString(), winner],
+        calldata: [BigInt(`0x${publicKey}`).toString(), BigInt(winner).toString()],
         signature:[BigInt(r), BigInt(s)],
       });      
       try {
