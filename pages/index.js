@@ -191,12 +191,12 @@ export default function Home() {
       });
       try {
         await defaultProvider.waitForTx(tx.transaction_hash);
+        setCanVote(true);
       } catch (ex) {
         setError("Transaction Failed!")
       }
       setLoading(false)
       setTransactionHash(`${tx.transaction_hash}`);
-      setCanVote(true);
     } catch (ex) {
       console.log(ex)
     }
