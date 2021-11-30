@@ -1,18 +1,221 @@
+import { defaultProvider, stark } from "starknet";
+const { getSelectorFromName } = stark;
+import starkwareCrypto from "../starkex-resources/crypto/starkware/crypto/signature/signature";
+
 import Head from "next/head";
 import Image from "next/image";
 import styles from "../styles/Home.module.scss";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+const CONTRACT_ADDRESS = "0x04a5855bdd52e80d7d7fb1e8ab58d2d27824acf60884a5831ae570989b483b12";
+const SCANNER_URL = "https://goerli.voyager.online/tx/";
+const BETTOR_KEY = BigInt("1760418810258047747319624810079239535625535714501828538519032901506640722029");
+const COUNTER_BETTOR_KEY = BigInt("278322248623630296242648006019224416377168424768993359209428903413523070650");
+const JUDGE_KEY = BigInt("713135050985816517586543284074128109440152783727087655040412995250074188501");
+
 
 export default function Home() {
-  const [amount, setAmount] = useState(0);
-  const [pk, setPK] = useState("");
+  const [balance, setBalance] = useState("0");
+  const [amount, setAmount] = useState("");
+  const [balanceIncrease, setBalanceIncrease] = useState("");
+  const [userId, setUserId] = useState("");
+  const [publicKey, setPublicKey] = useState("");
+  const [keyPair, setKeyPair] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [transactionHash, setTransactionHash] = useState("");
+  const [canVote, setCanVote] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function getBalance() {
+    if(publicKey){
+      const balance = await defaultProvider.callContract({
+        contract_address: CONTRACT_ADDRESS,
+        entry_point_selector: getSelectorFromName("get_balance"),
+        calldata: [BigInt(`0x${publicKey}`).toString()],
+      });
+      setBalance(BigInt(balance.result[0]).toString());
+    }
+  }
+
+  useEffect(() => {
+    getBalance();
+  });
+
+  useEffect(() => {
+    async function judgeCheck() {
+      if(publicKey) {
+        const judge = await defaultProvider.getStorageAt(CONTRACT_ADDRESS, JUDGE_KEY);
+        setCanVote(judge === `0x${publicKey}`)
+      }
+    }
+    judgeCheck();
+  }, [publicKey]);
+
 
   function handleChangeAmount(e) {
     setAmount(e.target.value);
   }
-  function handleChangePK(e) {
-    setPK(e.target.value);
+  function handleChangeIncreaseBalance(e) {
+    setBalanceIncrease(e.target.value);
+  }
+  function handleChangeUserId(e) {
+    setUserId(e.target.value);
+  }
+  function handleOpenTransaction() {
+    window.open(`${SCANNER_URL}${transactionHash}`, '_blank');
+    setTransactionHash("");
+  }
+
+  async function handleIncreaseBalance() {
+    if(!publicKey) {
+      alert("Please connect")
+      return;
+    }
+    if(!balanceIncrease) {
+      alert("Please enter the amount")
+      return;
+    }
+    const messageHash = starkwareCrypto.pedersen([balanceIncrease, 0]);
+    const signature = starkwareCrypto.sign(keyPair, messageHash);
+    var r = "0x" + signature.r.toString(16);
+    var s = "0x" + signature.s.toString(16);
+    try {
+      setLoading(true);
+      setTransactionHash("");
+      const tx = await defaultProvider.addTransaction({
+        type: "INVOKE_FUNCTION",
+        contract_address: CONTRACT_ADDRESS,
+        entry_point_selector: getSelectorFromName("increase_balance"),
+        calldata: [BigInt(`0x${publicKey}`).toString(), `${balanceIncrease}`],
+        signature:[BigInt(r), BigInt(s)],
+      });
+      await defaultProvider.waitForTx(tx.transaction_hash);
+      setLoading(false)
+      setTransactionHash(tx.transaction_hash);
+      setBalanceIncrease("")
+    } catch (ex) {
+      console.log(ex)
+    }
+  }
+
+  async function handleCreateBet() {
+    if(!publicKey) {
+      alert("Please connect")
+      return;
+    }
+    if(!amount) {
+      alert("Please enter the amount")
+      return;
+    }
+    const messageHash = starkwareCrypto.pedersen([amount]);
+    const signature = starkwareCrypto.sign(keyPair, messageHash);
+    var r = "0x" + signature.r.toString(16);
+    var s = "0x" + signature.s.toString(16);
+    try {
+      setLoading(true);
+      setTransactionHash("");
+      const tx = await defaultProvider.addTransaction({
+        type: "INVOKE_FUNCTION",
+        contract_address: CONTRACT_ADDRESS,
+        entry_point_selector: getSelectorFromName("createBet"),
+        calldata: [BigInt(`0x${publicKey}`).toString(), `${amount}`, `12345`],
+        signature:[BigInt(r), BigInt(s)],
+      });
+      await defaultProvider.waitForTx(tx.transaction_hash);
+      setLoading(false)
+      setTransactionHash(`${tx.transaction_hash}`);
+      setAmount("");
+    } catch (ex) {
+      console.log(ex)
+    }
+  }
+
+  async function handleJoinBet() {
+    if(!publicKey) {
+      alert("Please connect")
+      return;
+    }
+    try {
+      setLoading(true);
+      setTransactionHash("");
+      const tx = await defaultProvider.addTransaction({
+        type: "INVOKE_FUNCTION",
+        contract_address: CONTRACT_ADDRESS,
+        entry_point_selector: getSelectorFromName("joinCounterBettor"),
+        calldata: [BigInt(`0x${publicKey}`).toString()],
+      });
+      await defaultProvider.waitForTx(tx.transaction_hash);
+      setLoading(false)
+      setTransactionHash(`${tx.transaction_hash}`);
+    } catch (ex) {
+      console.log(ex)
+    }
+
+  }
+
+  async function handleBeJudge() {
+    if(!publicKey) {
+      alert("Please connect")
+      return;
+    }
+    try {
+      setLoading(true);
+      setTransactionHash("");
+      const tx = await defaultProvider.addTransaction({
+        type: "INVOKE_FUNCTION",
+        contract_address: CONTRACT_ADDRESS,
+        entry_point_selector: getSelectorFromName("joinJudge"),
+        calldata: [BigInt(`0x${publicKey}`).toString()],
+      });
+      await defaultProvider.waitForTx(tx.transaction_hash);
+      setLoading(false)
+      setTransactionHash(`${tx.transaction_hash}`);
+      setCanVote(true);
+    } catch (ex) {
+      console.log(ex)
+    }
+  }
+
+  async function handleVote(choice) {
+    if(!publicKey) {
+      alert("Please connect")
+      return;
+    }
+    const winnerKey = choice ? BETTOR_KEY : COUNTER_BETTOR_KEY;
+    const winner = await defaultProvider.getStorageAt(CONTRACT_ADDRESS, winnerKey);
+    
+    if (!winner || winner === '0x0') {
+      alert("Participant didn't join yet")
+      return;
+    }
+    const messageHash = starkwareCrypto.pedersen([winner.substr(2)]);
+    const signature = starkwareCrypto.sign(keyPair, messageHash);
+    var r = "0x" + signature.r.toString(16);
+    var s = "0x" + signature.s.toString(16);
+    try {
+      setLoading(true);
+      setTransactionHash("");
+      const tx = await defaultProvider.addTransaction({
+        type: "INVOKE_FUNCTION",
+        contract_address: CONTRACT_ADDRESS,
+        entry_point_selector: getSelectorFromName("voteBettor"),
+        calldata: [BigInt(`0x${publicKey}`).toString(), winner],
+        signature:[BigInt(r), BigInt(s)],
+      });
+      await defaultProvider.waitForTx(tx.transaction_hash);
+      setLoading(false)
+      setTransactionHash(`${tx.transaction_hash}`);
+    } catch (ex) {
+      console.log(ex)
+    }
+  }
+
+  function handleSubmitUserID() {
+    const keyPair = starkwareCrypto.ec.keyFromPrivate(userId, 'hex');
+    const publicKey = starkwareCrypto.ec.keyFromPublic(keyPair.getPublic(true, 'hex'), 'hex').pub.getX().toString(16);
+    setKeyPair(keyPair);
+    setPublicKey(publicKey);
+    setShowModal(false)
   }
   return (
     <div className={styles.container}>
@@ -25,7 +228,7 @@ export default function Home() {
         {showModal ? (
           <div className={styles.backdrop}>
             <div className={styles.modal}>
-              <button className={styles.close} onClick={() => setShowModal(false)}>
+              <button className={styles.close} onClick={handleSubmitUserID}>
                 <Image
                   src="/close.svg"
                   alt="close"
@@ -33,16 +236,16 @@ export default function Home() {
                   height={75}
                 />
               </button>
-              <h3>Please enter your Private Key</h3>
+              <h3>Please enter your User Id</h3>
               <input
                 className={styles.formInput}
                 type="text"
-                placeholder="Private Key"
-                onChange={handleChangePK}
+                placeholder="User ID"
+                onChange={handleChangeUserId}
                 style={{marginBottom: "15px"}}
-                value={pk}
+                value={userId}
               />
-              <button className={styles.btnPrimary} onClick={() => setShowModal(false)}>Submit</button>
+              <button className={styles.btnPrimary} onClick={handleSubmitUserID}>Submit</button>
             </div>
           </div>
         ) : null}
@@ -55,10 +258,31 @@ export default function Home() {
               width={75}
               height={75}
             />
-            <button className={styles.btnConnect} onClick={() => setShowModal(true)}>Connect</button>
+            {
+              publicKey 
+                ? <span className={styles.address} onClick={() => setShowModal(true)}>{`0x${publicKey.substr(0,5)}...${publicKey.substr(publicKey.length - 3)}`}</span>
+                : <button className={styles.btnConnect} onClick={() => setShowModal(true)}>Connect</button>
+            }
           </div>
+        {transactionHash ? (
+            <div className={styles.transactionHash} onClick={handleOpenTransaction}>
+              Transaction Hash: {transactionHash}
+            </div>
+        ) : null }
+        {loading ? <div className={styles.loader}></div> : (
           <div className={styles.controlContainer}>
-            <h3>Current Bet Balance: 30</h3>
+            <h3>Balance: {balance}</h3>
+            <div className={styles.formContainer}>
+              <input
+                className={styles.formInput}
+                placeholder="Amount"
+                type="number"
+                name="amount"
+                value={balanceIncrease}
+                onChange={handleChangeIncreaseBalance}
+              />
+              <button className={styles.btnPrimary} onClick={handleIncreaseBalance}>Increase Balance</button>
+            </div>
             <div className={styles.formContainer}>
               <input
                 className={styles.formInput}
@@ -68,24 +292,29 @@ export default function Home() {
                 value={amount}
                 onChange={handleChangeAmount}
               />
-              <button className={styles.btnPrimary}>Create Bet</button>
+              <button className={styles.btnPrimary} onClick={handleCreateBet}>Create Bet</button>
             </div>
             <div className={styles.buttonContainer}>
-              <button className={styles.btnPrimary}>Join Bet</button>
+              <button className={styles.btnPrimary} onClick={handleJoinBet}>Join Bet</button>
             </div>
             <div className={styles.buttonContainer}>
-              <button className={styles.btnPrimary}>Be Judge</button>
+              <button className={styles.btnPrimary} onClick={handleBeJudge}>Be Judge</button>
             </div>
-            <div>
-              <h3>Vote</h3>
-              <div className={styles.formContainer}>
-                <button className={styles.btnPrimaryOutline}>Bettor</button>
-                <button className={styles.btnPrimaryOutline}>
-                  Counter Bettor
-                </button>
+            {canVote ? (
+              <div>
+                <h3>Vote</h3>
+                <div className={styles.formContainer}>
+                  <button className={styles.btnPrimaryOutline} onClick={() => handleVote(true)}>
+                    Bettor
+                  </button>
+                  <button className={styles.btnPrimaryOutline} onClick={() => handleVote(false)}>
+                    Counter Bettor
+                  </button>
+                </div>
               </div>
-            </div>
+            ) : null}
           </div>
+        )}
           <div className={styles.powered}>Powered by IBY</div>
         </div>
       </main>

@@ -59,6 +59,7 @@
   width: 70%;
   min-width: 400px;
   height: 80vh;
+  min-height: 630px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -146,9 +147,46 @@
   margin-bottom: 15px;
   font-weight: 600;
 }
+.address {
+  cursor: pointer;
+  border: 2px solid #555;
+  padding: 10px;
+  border-radius: 25px;
+}
+.address:hover {
+  background-color: #555;
+}
 .powered {
   font-size: 8px;
   margin-bottom: -20px;
   text-align: right;
   width: 100%;
+}
+.transactionHash {
+  cursor: pointer;
+  background-color: #0c87f2;
+  padding: 20px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.loader {
+  border: 16px solid #777;
+  border-radius: 50%;
+  border-top: 16px solid #2CC597;
+  width: 120px;
+  height: 120px;
+  -webkit-animation: spin 1.5s linear infinite; /* Safari */
+  animation: spin 1.5s linear infinite;
+}
+
+/* Safari */
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
