@@ -49,6 +49,7 @@
   }
 }
 .card {
+  position: relative;
   margin: 1rem;
   padding: 1.5rem;
   color: transparent;
@@ -165,6 +166,17 @@
 .transactionHash {
   cursor: pointer;
   background-color: #0c87f2;
+  padding: 20px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+.error {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: pointer;
+  background-color: #FF718D;
   padding: 20px;
   border-radius: 20px;
   font-weight: 600;

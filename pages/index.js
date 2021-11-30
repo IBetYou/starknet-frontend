@@ -25,6 +25,7 @@ export default function Home() {
   const [transactionHash, setTransactionHash] = useState("");
   const [canVote, setCanVote] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function getBalance() {
     if(publicKey){
@@ -51,7 +52,13 @@ export default function Home() {
     judgeCheck();
   }, [publicKey]);
 
-
+  useEffect(() => {
+    if(error) {
+      setTimeout(() => {
+        setError("");
+      }, 5000)
+    }
+  }, [error]);
   function handleChangeAmount(e) {
     setAmount(e.target.value);
   }
@@ -65,14 +72,17 @@ export default function Home() {
     window.open(`${SCANNER_URL}${transactionHash}`, '_blank');
     setTransactionHash("");
   }
+  function handleCloseError() {
+    setError("");
+  }
 
   async function handleIncreaseBalance() {
     if(!publicKey) {
-      alert("Please connect")
+      setError("Please connect")
       return;
     }
     if(!balanceIncrease) {
-      alert("Please enter the amount")
+      setError("Please enter the amount")
       return;
     }
     const messageHash = starkwareCrypto.pedersen([balanceIncrease, 0]);
@@ -89,7 +99,11 @@ export default function Home() {
         calldata: [BigInt(`0x${publicKey}`).toString(), `${balanceIncrease}`],
         signature:[BigInt(r), BigInt(s)],
       });
-      await defaultProvider.waitForTx(tx.transaction_hash);
+      try {
+        await defaultProvider.waitForTx(tx.transaction_hash);
+      } catch (ex) {
+        setError("Transaction Failed!")
+      }
       setLoading(false)
       setTransactionHash(tx.transaction_hash);
       setBalanceIncrease("")
@@ -100,11 +114,11 @@ export default function Home() {
 
   async function handleCreateBet() {
     if(!publicKey) {
-      alert("Please connect")
+      setError("Please connect")
       return;
     }
     if(!amount) {
-      alert("Please enter the amount")
+      setError("Please enter the amount")
       return;
     }
     const messageHash = starkwareCrypto.pedersen([amount]);
@@ -121,7 +135,11 @@ export default function Home() {
         calldata: [BigInt(`0x${publicKey}`).toString(), `${amount}`, `12345`],
         signature:[BigInt(r), BigInt(s)],
       });
-      await defaultProvider.waitForTx(tx.transaction_hash);
+      try {
+        await defaultProvider.waitForTx(tx.transaction_hash);
+      } catch (ex) {
+        setError("Transaction Failed!")
+      }
       setLoading(false)
       setTransactionHash(`${tx.transaction_hash}`);
       setAmount("");
@@ -132,7 +150,7 @@ export default function Home() {
 
   async function handleJoinBet() {
     if(!publicKey) {
-      alert("Please connect")
+      setError("Please connect")
       return;
     }
     try {
@@ -144,7 +162,11 @@ export default function Home() {
         entry_point_selector: getSelectorFromName("joinCounterBettor"),
         calldata: [BigInt(`0x${publicKey}`).toString()],
       });
-      await defaultProvider.waitForTx(tx.transaction_hash);
+      try {
+        await defaultProvider.waitForTx(tx.transaction_hash);
+      } catch (ex) {
+        setError("Transaction Failed!")
+      }
       setLoading(false)
       setTransactionHash(`${tx.transaction_hash}`);
     } catch (ex) {
@@ -155,7 +177,7 @@ export default function Home() {
 
   async function handleBeJudge() {
     if(!publicKey) {
-      alert("Please connect")
+      setError("Please connect")
       return;
     }
     try {
@@ -167,7 +189,11 @@ export default function Home() {
         entry_point_selector: getSelectorFromName("joinJudge"),
         calldata: [BigInt(`0x${publicKey}`).toString()],
       });
-      await defaultProvider.waitForTx(tx.transaction_hash);
+      try {
+        await defaultProvider.waitForTx(tx.transaction_hash);
+      } catch (ex) {
+        setError("Transaction Failed!")
+      }
       setLoading(false)
       setTransactionHash(`${tx.transaction_hash}`);
       setCanVote(true);
@@ -178,14 +204,14 @@ export default function Home() {
 
   async function handleVote(choice) {
     if(!publicKey) {
-      alert("Please connect")
+      setError("Please connect")
       return;
     }
     const winnerKey = choice ? BETTOR_KEY : COUNTER_BETTOR_KEY;
     const winner = await defaultProvider.getStorageAt(CONTRACT_ADDRESS, winnerKey);
     
     if (!winner || winner === '0x0') {
-      alert("Participant didn't join yet")
+      setError("Participant didn't join yet")
       return;
     }
     const messageHash = starkwareCrypto.pedersen([winner.substr(2)]);
@@ -201,8 +227,12 @@ export default function Home() {
         entry_point_selector: getSelectorFromName("voteBettor"),
         calldata: [BigInt(`0x${publicKey}`).toString(), winner],
         signature:[BigInt(r), BigInt(s)],
-      });
-      await defaultProvider.waitForTx(tx.transaction_hash);
+      });      
+      try {
+        await defaultProvider.waitForTx(tx.transaction_hash);
+      } catch (ex) {
+        setError("Transaction Failed!")
+      }
       setLoading(false)
       setTransactionHash(`${tx.transaction_hash}`);
     } catch (ex) {
@@ -267,6 +297,11 @@ export default function Home() {
         {transactionHash ? (
             <div className={styles.transactionHash} onClick={handleOpenTransaction}>
               Transaction Hash: {transactionHash}
+            </div>
+        ) : null }
+        {error ? (
+            <div className={styles.error} onClick={handleCloseError}>
+              {error}
             </div>
         ) : null }
         {loading ? <div className={styles.loader}></div> : (
