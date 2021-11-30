@@ -5,10 +5,8 @@ services:
       context: ../
       dockerfile: ./.docker/Dockerfile
     container_name: iby-startknet-front
-    # command: npm run dev
+    command: node_modules/.bin/next start
     working_dir: /opt/web
-    volumes:
-      - /opt/gh/public:/opt/web/public
     image: iby-startknet-front
     ports:
       - 127.0.0.1:4000:3000
