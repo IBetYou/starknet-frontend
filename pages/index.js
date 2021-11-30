@@ -1,4 +1,4 @@
-import { defaultProvider, stark } from "starknet";
+import { defaultProvider, stark, Provider } from "starknet";
 const { getSelectorFromName } = stark;
 import starkwareCrypto from "../starkex-resources/crypto/starkware/crypto/signature/signature";
 
@@ -7,14 +7,15 @@ import Image from "next/image";
 import styles from "../styles/Home.module.scss";
 import { useState, useEffect } from "react";
 
-const CONTRACT_ADDRESS = "0x04a5855bdd52e80d7d7fb1e8ab58d2d27824acf60884a5831ae570989b483b12";
-const SCANNER_URL = "https://goerli.voyager.online/tx/";
+const CONTRACT_ADDRESS = "0x072c5c2dedc514a7d05a0d4f64b6caaef987ba7c056693cb0dbf8bc73bc11122";
+const SCANNER_URL = "https://www.voyager.online/tx/";
 const BETTOR_KEY = BigInt("1760418810258047747319624810079239535625535714501828538519032901506640722029");
 const COUNTER_BETTOR_KEY = BigInt("278322248623630296242648006019224416377168424768993359209428903413523070650");
 const JUDGE_KEY = BigInt("713135050985816517586543284074128109440152783727087655040412995250074188501");
 
 
 export default function Home() {
+  const [provider, setProvider] = useState(defaultProvider);
   const [balance, setBalance] = useState("0");
   const [amount, setAmount] = useState("");
   const [balanceIncrease, setBalanceIncrease] = useState("");
@@ -29,7 +30,7 @@ export default function Home() {
 
   async function getBalance() {
     if(publicKey){
-      const balance = await defaultProvider.callContract({
+      const balance = await provider.callContract({
         contract_address: CONTRACT_ADDRESS,
         entry_point_selector: getSelectorFromName("get_balance"),
         calldata: [BigInt(`0x${publicKey}`).toString()],
@@ -39,13 +40,19 @@ export default function Home() {
   }
 
   useEffect(() => {
+    const provider = new Provider({baseUrl: 'https://alpha-mainnet.starknet.io/',  feederGatewayUrl: 'feeder_gateway', gatewayUrl: 'gateway'})
+    setProvider(provider);
+  }, []);
+
+  useEffect(() => {
+    console.log("Getting Balance...")
     getBalance();
   });
 
   useEffect(() => {
     async function judgeCheck() {
       if(publicKey) {
-        const judge = await defaultProvider.getStorageAt(CONTRACT_ADDRESS, JUDGE_KEY);
+        const judge = await provider.getStorageAt(CONTRACT_ADDRESS, JUDGE_KEY);
         setCanVote(judge === `0x${publicKey}`)
       }
     }
@@ -92,7 +99,7 @@ export default function Home() {
     try {
       setLoading(true);
       setTransactionHash("");
-      const tx = await defaultProvider.addTransaction({
+      const tx = await provider.addTransaction({
         type: "INVOKE_FUNCTION",
         contract_address: CONTRACT_ADDRESS,
         entry_point_selector: getSelectorFromName("increase_balance"),
@@ -100,7 +107,7 @@ export default function Home() {
         signature:[BigInt(r), BigInt(s)],
       });
       try {
-        await defaultProvider.waitForTx(tx.transaction_hash);
+        await provider.waitForTx(tx.transaction_hash);
       } catch (ex) {
         setError("Transaction Failed!")
       }
@@ -128,7 +135,7 @@ export default function Home() {
     try {
       setLoading(true);
       setTransactionHash("");
-      const tx = await defaultProvider.addTransaction({
+      const tx = await provider.addTransaction({
         type: "INVOKE_FUNCTION",
         contract_address: CONTRACT_ADDRESS,
         entry_point_selector: getSelectorFromName("createBet"),
@@ -136,7 +143,7 @@ export default function Home() {
         signature:[BigInt(r), BigInt(s)],
       });
       try {
-        await defaultProvider.waitForTx(tx.transaction_hash);
+        await provider.waitForTx(tx.transaction_hash);
       } catch (ex) {
         setError("Transaction Failed!")
       }
@@ -156,14 +163,14 @@ export default function Home() {
     try {
       setLoading(true);
       setTransactionHash("");
-      const tx = await defaultProvider.addTransaction({
+      const tx = await provider.addTransaction({
         type: "INVOKE_FUNCTION",
         contract_address: CONTRACT_ADDRESS,
         entry_point_selector: getSelectorFromName("joinCounterBettor"),
         calldata: [BigInt(`0x${publicKey}`).toString()],
       });
       try {
-        await defaultProvider.waitForTx(tx.transaction_hash);
+        await provider.waitForTx(tx.transaction_hash);
       } catch (ex) {
         setError("Transaction Failed!")
       }
@@ -183,7 +190,7 @@ export default function Home() {
     try {
       setLoading(true);
       setTransactionHash("");
-      const tx = await defaultProvider.addTransaction({
+      const tx = await provider.addTransaction({
         type: "INVOKE_FUNCTION",
         contract_address: CONTRACT_ADDRESS,
         entry_point_selector: getSelectorFromName("joinJudge"),
@@ -208,7 +215,7 @@ export default function Home() {
       return;
     }
     const winnerKey = choice ? BETTOR_KEY : COUNTER_BETTOR_KEY;
-    const winner = await defaultProvider.getStorageAt(CONTRACT_ADDRESS, winnerKey);
+    const winner = await provider.getStorageAt(CONTRACT_ADDRESS, winnerKey);
     
     if (!winner || winner === '0x0') {
       setError("Participant didn't join yet")
@@ -221,7 +228,7 @@ export default function Home() {
     try {
       setLoading(true);
       setTransactionHash("");
-      const tx = await defaultProvider.addTransaction({
+      const tx = await provider.addTransaction({
         type: "INVOKE_FUNCTION",
         contract_address: CONTRACT_ADDRESS,
         entry_point_selector: getSelectorFromName("voteBettor"),
@@ -229,7 +236,7 @@ export default function Home() {
         signature:[BigInt(r), BigInt(s)],
       });      
       try {
-        await defaultProvider.waitForTx(tx.transaction_hash);
+        await provider.waitForTx(tx.transaction_hash);
       } catch (ex) {
         setError("Transaction Failed!")
       }
