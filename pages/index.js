@@ -254,6 +254,10 @@ export default function Home() {
     setPublicKey(publicKey);
     setShowModal(false)
   }
+  function handleCloseConnect () {
+    setShowModal(false);
+    setUserId("");
+  }
   return (
     <div className={styles.container}>
       <Head>
@@ -265,7 +269,7 @@ export default function Home() {
         {showModal ? (
           <div className={styles.backdrop}>
             <div className={styles.modal}>
-              <button className={styles.close} onClick={handleSubmitUserID}>
+              <button className={styles.close} onClick={handleCloseConnect}>
                 <Image
                   src="/close.svg"
                   alt="close"
