@@ -119,7 +119,7 @@ export default function Home() {
     }
   }
 
-  async function handleCreateBet() {
+  async function handleCreateChallenge() {
     if(!publicKey) {
       setError("Please connect")
       return;
@@ -155,7 +155,7 @@ export default function Home() {
     }
   }
 
-  async function handleJoinBet() {
+  async function handleJoinChallenge() {
     if(!publicKey) {
       setError("Please connect")
       return;
@@ -334,10 +334,10 @@ export default function Home() {
                 value={amount}
                 onChange={handleChangeAmount}
               />
-              <button className={styles.btnPrimary} onClick={handleCreateBet}>Create Bet</button>
+              <button className={styles.btnPrimary} onClick={handleCreateChallenge}>Create Challenge</button>
             </div>
             <div className={styles.buttonContainer}>
-              <button className={styles.btnPrimary} onClick={handleJoinBet}>Join Bet</button>
+              <button className={styles.btnPrimary} onClick={handleJoinChallenge}>Join Challenge</button>
             </div>
             <div className={styles.buttonContainer}>
               <button className={styles.btnPrimary} onClick={handleBeJudge}>Be Judge</button>
@@ -347,10 +347,10 @@ export default function Home() {
                 <h3>Vote</h3>
                 <div className={styles.formContainer}>
                   <button className={styles.btnPrimaryOutline} onClick={() => handleVote(true)}>
-                    Bettor
+                    Challenger
                   </button>
                   <button className={styles.btnPrimaryOutline} onClick={() => handleVote(false)}>
-                    Counter Bettor
+                    Counter Challenger
                   </button>
                 </div>
               </div>
