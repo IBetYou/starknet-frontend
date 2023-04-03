@@ -1,5 +1,4 @@
-import { defaultProvider, stark, Provider } from "starknet";
-const { getSelectorFromName } = stark;
+import { stark, Provider, hash, NetworkName } from "starknet";
 import starkwareCrypto from "../starkex-resources/crypto/starkware/crypto/signature/signature";
 
 import Head from "next/head";
@@ -7,15 +6,20 @@ import Image from "next/image";
 import styles from "../styles/Home.module.scss";
 import { useState, useEffect } from "react";
 
-const CONTRACT_ADDRESS = "0x072c5c2dedc514a7d05a0d4f64b6caaef987ba7c056693cb0dbf8bc73bc11122";
+const CONTRACT_ADDRESS = "0x04a5855bdd52e80d7d7fb1e8ab58d2d27824acf60884a5831ae570989b483b12"//"0x072c5c2dedc514a7d05a0d4f64b6caaef987ba7c056693cb0dbf8bc73bc11122";
 const SCANNER_URL = "https://www.voyager.online/tx/";
 const BETTOR_KEY = BigInt("1760418810258047747319624810079239535625535714501828538519032901506640722029");
 const COUNTER_BETTOR_KEY = BigInt("278322248623630296242648006019224416377168424768993359209428903413523070650");
 const JUDGE_KEY = BigInt("713135050985816517586543284074128109440152783727087655040412995250074188501");
 
+const GoerliProvider = new Provider({
+  sequencer: {
+      network: 'SN_GOERLI'
+  }
+});
 
 export default function Home() {
-  const [provider, setProvider] = useState(defaultProvider);
+  const [provider, setProvider] = useState(GoerliProvider);
   const [balance, setBalance] = useState("0");
   const [amount, setAmount] = useState("");
   const [balanceIncrease, setBalanceIncrease] = useState("");
@@ -30,18 +34,23 @@ export default function Home() {
 
   async function getBalance() {
     if(publicKey){
-      const balance = await provider.callContract({
+/*       const balance = await provider.callContract({
         contract_address: CONTRACT_ADDRESS,
-        entry_point_selector: getSelectorFromName("get_balance"),
+        entry_point_selector: hash.getSelectorFromName("get_balance"),
         calldata: [BigInt(`0x${publicKey}`).toString()],
-      });
+      }); */
+      const balance = await provider.callContract({
+        contractAddress: CONTRACT_ADDRESS,
+        entrypoint: 'get_balance',
+        calldata: [BigInt(`0x${publicKey}`).toString()],
+      })
       setBalance(BigInt(balance.result[0]).toString());
     }
   }
 
   useEffect(() => {
-    const provider = new Provider({baseUrl: 'https://alpha-mainnet.starknet.io/',  feederGatewayUrl: 'feeder_gateway', gatewayUrl: 'gateway'})
-    setProvider(provider);
+    // const provider = new Provider({baseUrl: 'https://alpha-mainnet.starknet.io/',  feederGatewayUrl: 'feeder_gateway', gatewayUrl: 'gateway'})
+    // setProvider(provider);
   }, []);
 
   useEffect(() => {
@@ -197,7 +206,7 @@ export default function Home() {
         calldata: [BigInt(`0x${publicKey}`).toString()],
       });
       try {
-        await defaultProvider.waitForTx(tx.transaction_hash);
+        await GoerliProvider.waitForTx(tx.transaction_hash);
         setCanVote(true);
       } catch (ex) {
         setError("Transaction Failed!")
