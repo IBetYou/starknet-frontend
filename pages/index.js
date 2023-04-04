@@ -1,5 +1,6 @@
-import { stark, Provider, hash, NetworkName } from "starknet";
+import { stark, Provider, hash, NetworkName, Account, Contract, json } from "starknet";
 import starkwareCrypto from "../starkex-resources/crypto/starkware/crypto/signature/signature";
+import abi from "../contracts/contract_abi.json"
 
 import Head from "next/head";
 import Image from "next/image";
@@ -18,8 +19,19 @@ const GoerliProvider = new Provider({
   }
 });
 
+
+const TEMP_ACC = {
+  address: "0x0499A19E3c1c87655D3052D627f4CA96F282bafFA21FF3Afe8F167fbba40BfA6",
+  key: "1229854529509114180637580673869934976982766236016511634876491324808930874473"
+}
+const tempGoerliAccount = new Account(GoerliProvider, TEMP_ACC.address, TEMP_ACC.key);
+const BetContract = new Contract(abi, CONTRACT_ADDRESS, tempGoerliAccount);
+
+
 export default function Home() {
   const [provider, setProvider] = useState(GoerliProvider);
+  const [account, setAccount] = useState(tempGoerliAccount);
+  const [contract, setContract] = useState(BetContract);
   const [balance, setBalance] = useState("0");
   const [amount, setAmount] = useState("");
   const [balanceIncrease, setBalanceIncrease] = useState("");
@@ -108,13 +120,15 @@ export default function Home() {
     try {
       setLoading(true);
       setTransactionHash("");
-      const tx = await provider.addTransaction({
+/*       const tx = await provider.addTransaction({
         type: "INVOKE_FUNCTION",
         contract_address: CONTRACT_ADDRESS,
         entry_point_selector: getSelectorFromName("increase_balance"),
         calldata: [BigInt(`0x${publicKey}`).toString(), `${balanceIncrease}`],
         signature:[BigInt(r), BigInt(s)],
-      });
+      }); */
+      const tx = contract.increase_balance(`0x${publicKey}`, `${balanceIncrease}`);
+
       try {
         await provider.waitForTx(tx.transaction_hash);
       } catch (ex) {
